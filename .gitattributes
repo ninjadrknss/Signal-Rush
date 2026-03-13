@@ -1,0 +1,15 @@
+# Default behavior
+* text=auto
+
+# Force CRLF for source files
+*.java        text eol=crlf
+*.gradle      text eol=crlf
+*.gradle.kts  text eol=crlf
+
+# Optional: scripts that must stay LF
+*.sh          text eol=lf
+*.bash        text eol=lf
+
+# Windows scripts
+*.bat         text eol=crlf
+*.cmd         text eol=crlf
