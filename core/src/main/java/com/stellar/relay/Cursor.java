@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.fazecast.jSerialComm.SerialPort;
-import java.util.Arrays;
 
 public class Cursor {
 	private Player player;
@@ -14,7 +13,7 @@ public class Cursor {
 	private final Sprite sprite;
 	private static SerialPort picoPort;
 
-	private byte[] buffer = new byte[256];
+	private byte[] buffer = new byte[14];
 
 	public Cursor(float x, float y, Player player) {
 		this.player = player;
@@ -47,29 +46,42 @@ public class Cursor {
 		float speed = 150.0f * Gdx.graphics.getDeltaTime();
 
 		int numRead = picoPort.readBytes(buffer, buffer.length);
-		boolean[] joystick = new boolean[4]; // Up, Down, Left, Right
+		boolean[] inputs = new boolean[6]; // Up, Down, Left, Right, button1, button2
 
 		if (numRead > 0) {
+			// Read the first line of data
 			String data = new String(buffer, 0, numRead).trim().split("\n")[0];
 			if (data.charAt(0) == 'P') {
-				for (int i = 0; i < 4 && i < data.length() - 1; i++) {
-					joystick[i] = data.charAt(i + 2) == '1';
+				for (int i = 0; i < 6 && i < data.length() - 1; i++) {
+					// The data format is expected to be "P:xxxxyyaaaabb" where each variable is '0' or '1'
+					// for each button,
+					// and each set of 6 buttons corresponds to a player, 4 joystick switches, 2 buttons.
+					inputs[i] = data.charAt(i + 2 + (player == Player.LEFT ? 0 : 6)) == '1';
 				}
 			}
+			System.out.println("Received data: " + data);
 			buffer = new byte[256];
 		}
 
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || joystick[3]) {
+		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.D)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.RIGHT)
+				|| inputs[3]) {
 			sprite.translateX(speed);
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || joystick[2]) {
+		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.A)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.LEFT)
+				|| inputs[2]) {
 			sprite.translateX(-speed);
 		}
 
-		if (Gdx.input.isKeyPressed(Input.Keys.UP) || joystick[0]) {
+		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.W)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.UP)
+				|| inputs[0]) {
 			sprite.translateY(speed);
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || joystick[1]) {
+		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.S)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.DOWN)
+				|| inputs[1]) {
 			sprite.translateY(-speed);
 		}
 
