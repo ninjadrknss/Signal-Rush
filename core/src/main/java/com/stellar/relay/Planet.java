@@ -22,6 +22,8 @@ public class Planet {
 	private final float width;
 	private final float scale;
 
+	private int satelliteCount = 0;
+
 	private State state = State.NONE;
 
 	public static ArrayList<Planet> planets = new ArrayList<>();
@@ -94,7 +96,7 @@ public class Planet {
 		new Planet(x, y, type);
 	}
 
-	public void draw(Batch batch) {
+	private void draw(Batch batch) {
 		if (state == State.HOVERED || state == State.SELECTED) {
 			batch.end();
 			shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -110,9 +112,7 @@ public class Planet {
 	}
 
 	public static void drawAll(Batch batch) {
-		for (Planet planet : planets) {
-			planet.draw(batch);
-		}
+		planets.forEach(planet -> planet.draw(batch));
 	}
 
 	public static Planet getClosestPlanet(float x, float y) {
@@ -145,6 +145,18 @@ public class Planet {
 	}
 
 	public float getCY() {
-		return y + 55 * scale;
+		return y + 50 * scale;
+	}
+
+	public float getWidth() {
+		return 100 * scale;
+	}
+
+	public void incrementSatelliteCount() {
+		satelliteCount++;
+	}
+
+	public int getSatelliteCount() {
+		return satelliteCount;
 	}
 }

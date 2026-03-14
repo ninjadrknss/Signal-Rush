@@ -21,6 +21,17 @@ public class Main extends ApplicationAdapter {
 		for (int i = 0; i < 16; i++) {
 			Planet.spawnNewPlanet();
 		}
+
+		for (int i = 0; i < 20; i++) {
+			Planet randomPlanet = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
+
+			if (Math.pow(Math.random(), 1.0 / randomPlanet.getSatelliteCount()) > 0.2) {
+				i--;
+				continue;
+			}
+
+			Satellite.spawnNewSatellite(randomPlanet);
+		}
 	}
 
 	@Override
@@ -47,6 +58,7 @@ public class Main extends ApplicationAdapter {
 		ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 		batch.begin();
 		Planet.drawAll(batch);
+		Satellite.drawAll(batch);
 		controller.draw(batch);
 		viewport.apply();
 		batch.end();
