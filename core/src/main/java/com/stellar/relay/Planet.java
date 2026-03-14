@@ -100,7 +100,7 @@ public class Planet {
 			shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
 			shapeRenderer.setColor(state == State.HOVERED ? Color.YELLOW : Color.GREEN);
 			float rad = (width * scale) / 2;
-			shapeRenderer.circle(x - (50 - width / 2) + rad - (type == 14 ? 8 : 0), y + rad, rad);
+			shapeRenderer.circle(x - (50 - width / 2) + rad - (type == 14 ? 16 : 0), y + rad, rad);
 			shapeRenderer.end();
 			batch.begin();
 		}

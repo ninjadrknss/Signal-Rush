@@ -1,2 +1,3 @@
+PLACEHOLDER_Satellite.png
+PLACEHOLDER_Spaceship.png
 PLACEHOLDER_planets.png
-satellite.png

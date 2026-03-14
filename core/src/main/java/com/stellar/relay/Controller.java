@@ -18,13 +18,17 @@ public class Controller {
 	private boolean button1Pressed = false;
 	private boolean button2Pressed = false;
 
+	private double ax = 0;
+	private double ay = 0;
+
 	private Planet activePlanet = null;
 
 	public Controller(float x, float y, Player player) {
 		this.player = player;
 
-		sprite = new Sprite(new Texture("satellite.png"));
-		sprite.setSize(60, 60);
+		sprite = new Sprite(new Texture("PLACEHOLDER_Spaceship.png"));
+		sprite.setSize(40, 40);
+		sprite.setOrigin(sprite.getWidth() / 2 - 10, sprite.getHeight() / 2);
 		sprite.setPosition(x, y);
 
 		SerialPort[] ports = SerialPort.getCommPorts();
@@ -49,6 +53,9 @@ public class Controller {
 
 	public void input() {
 		float speed = 200f * Gdx.graphics.getDeltaTime();
+		double rotSpeed = 2.0f * Gdx.graphics.getDeltaTime();
+		double rotDecay = 0.95; // I dont understand why this fixes the rotation
+
 		boolean[] inputs = new boolean[6]; // Up, Down, Left, Right, button1, button2
 
 		if (picoPort != null && picoPort.isOpen()) {
@@ -74,22 +81,33 @@ public class Controller {
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.UP)
 				|| inputs[0]) {
 			sprite.translateY(speed);
+
+			ay = Math.min(ay + rotSpeed, 1);
+			ax = ax * rotDecay;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.S)
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.DOWN)
 				|| inputs[1]) {
 			sprite.translateY(-speed);
+			ay = Math.max(ay - rotSpeed, -1);
+			ax = ax * rotDecay;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.A)
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.LEFT)
 				|| inputs[2]) {
 			sprite.translateX(-speed);
+			ax = Math.max(ax - rotSpeed, -1);
+			ay = ay * rotDecay;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.D)
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.RIGHT)
 				|| inputs[3]) {
 			sprite.translateX(speed);
+			ax = Math.min(ax + rotSpeed, 1);
+			ay = ay * rotDecay;
 		}
+
+		sprite.setRotation((float) Math.toDegrees(Math.atan2(ay, ax)));
 
 		if (sprite.getX() < 0) {
 			sprite.setX(0);
