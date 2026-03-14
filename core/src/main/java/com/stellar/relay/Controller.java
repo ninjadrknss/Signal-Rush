@@ -15,6 +15,11 @@ public class Controller {
 
 	private byte[] buffer = new byte[14];
 
+	private boolean button1Pressed = false;
+	private boolean button2Pressed = false;
+
+	private Planet activePlanet = null;
+
 	public Controller(float x, float y, Player player) {
 		this.player = player;
 
@@ -97,6 +102,30 @@ public class Controller {
 		} else if (sprite.getY() + sprite.getHeight() > Gdx.graphics.getHeight()) {
 			sprite.setY(Gdx.graphics.getHeight() - sprite.getHeight());
 		}
+
+		button1Pressed =
+				player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.Q)
+						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.COMMA)
+						|| inputs[4];
+
+		button2Pressed =
+				player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.E)
+						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.PERIOD)
+						|| inputs[5];
+
+		if (activePlanet != null
+				&& activePlanet.getState() == Planet.State.SELECTED
+				&& button2Pressed) {
+			activePlanet.setState(Planet.State.NONE);
+		}
+	}
+
+	public boolean isButton1Pressed() {
+		return button1Pressed;
+	}
+
+	public boolean isButton2Pressed() {
+		return button2Pressed;
 	}
 
 	public void draw(Batch batch) {
@@ -105,22 +134,22 @@ public class Controller {
 
 		Planet planet = Planet.getClosestPlanet(cx_sprite, cy_sprite);
 
-		if (planet == null) {
-			sprite.draw(batch);
+		sprite.draw(batch);
+		if (planet == null
+				|| (activePlanet != null && activePlanet.getState() == Planet.State.SELECTED)) {
+			if (activePlanet != null && activePlanet.getState() == Planet.State.HOVERED) {
+				activePlanet.setState(Planet.State.NONE);
+				activePlanet = null;
+			}
 			return;
 		}
 
-		sprite.draw(batch);
+		activePlanet = planet;
 
-		float x = sprite.getX();
-		float y = sprite.getY();
-
-		sprite.setX(planet.getCX() - sprite.getWidth() / 2);
-		sprite.setY(planet.getCY() - sprite.getHeight() / 2);
-
-		sprite.draw(batch);
-
-		sprite.setX(x);
-		sprite.setY(y);
+		if (activePlanet.getState() == Planet.State.NONE) {
+			activePlanet.setState(Planet.State.HOVERED);
+		} else if (activePlanet.getState() == Planet.State.HOVERED && button1Pressed) {
+			activePlanet.setState(Planet.State.SELECTED);
+		}
 	}
 }

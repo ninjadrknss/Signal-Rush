@@ -1,6 +1,7 @@
 package com.stellar.relay;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -9,13 +10,19 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Planet {
+	public enum State {
+		NONE,
+		HOVERED,
+		SELECTED
+	}
+
 	private final int type;
 	private final float x;
 	private final float y;
 	private final float width;
 	private final float scale;
 
-	private boolean selected = false;
+	private State state = State.NONE;
 
 	public static ArrayList<Planet> planets = new ArrayList<>();
 
@@ -88,12 +95,15 @@ public class Planet {
 	}
 
 	public void draw(Batch batch) {
-		//		batch.end();
-		//		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-		//		shapeRenderer.setColor(Color.WHITE);
-		//		shapeRenderer.rect(x + (50 - width / 2), y, width * scale, 100 * scale);
-		//		shapeRenderer.end();
-		//		batch.begin();
+		if (state == State.HOVERED || state == State.SELECTED) {
+			batch.end();
+			shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+			shapeRenderer.setColor(state == State.HOVERED ? Color.YELLOW : Color.GREEN);
+			float rad = (width * scale) / 2;
+			shapeRenderer.circle(x - (50 - width / 2) + rad - (type == 14 ? 8 : 0), y + rad, rad);
+			shapeRenderer.end();
+			batch.begin();
+		}
 
 		batch.draw(
 				planetTextures[type], x - (type == 14 ? 8 : 0), y, 0, 0, width, 100, scale, scale, 0);
@@ -122,12 +132,12 @@ public class Planet {
 		return closest;
 	}
 
-	public boolean isSelected() {
-		return selected;
+	public State getState() {
+		return state;
 	}
 
-	public void setSelected(boolean selected) {
-		this.selected = selected;
+	public void setState(State state) {
+		this.state = state;
 	}
 
 	public float getCX() {
