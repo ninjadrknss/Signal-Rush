@@ -5,9 +5,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.MathUtils;
 import com.fazecast.jSerialComm.SerialPort;
 
 public class Controller {
+	public static final float MAX_INTERACTION_DISTANCE = 50;
+
 	private final Player player;
 
 	private final Sprite sprite;
@@ -16,12 +19,15 @@ public class Controller {
 	private byte[] buffer = new byte[14];
 
 	private boolean button1Pressed = false;
+	private boolean button1Prev = false;
 	private boolean button2Pressed = false;
+	private boolean button2Prev = false;
 
-	private double ax = 0;
-	private double ay = 0;
+	private float angle = 0;
 
-	private Planet activePlanet = null;
+	private Path path = null;
+
+	public Pathable lastPathable = null;
 
 	public Controller(float x, float y, Player player) {
 		this.player = player;
@@ -53,8 +59,7 @@ public class Controller {
 
 	public void input() {
 		float speed = 200f * Gdx.graphics.getDeltaTime();
-		double rotSpeed = 2.0f * Gdx.graphics.getDeltaTime();
-		double rotDecay = 0.95; // I dont understand why this fixes the rotation
+		double rotSpeed = 200.0f * Gdx.graphics.getDeltaTime();
 
 		boolean[] inputs = new boolean[6]; // Up, Down, Left, Right, button1, button2
 
@@ -77,37 +82,44 @@ public class Controller {
 			}
 		}
 
+		int velX = 0;
+		int velY = 0;
+
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.W)
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.UP)
 				|| inputs[0]) {
-			sprite.translateY(speed);
-
-			ay = Math.min(ay + rotSpeed, 1);
-			ax = ax * rotDecay;
+			velY++;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.S)
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.DOWN)
 				|| inputs[1]) {
-			sprite.translateY(-speed);
-			ay = Math.max(ay - rotSpeed, -1);
-			ax = ax * rotDecay;
+			velY--;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.A)
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.LEFT)
 				|| inputs[2]) {
-			sprite.translateX(-speed);
-			ax = Math.max(ax - rotSpeed, -1);
-			ay = ay * rotDecay;
+			velX--;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.D)
 				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.RIGHT)
 				|| inputs[3]) {
-			sprite.translateX(speed);
-			ax = Math.min(ax + rotSpeed, 1);
-			ay = ay * rotDecay;
+			velX++;
 		}
 
-		sprite.setRotation((float) Math.toDegrees(Math.atan2(ay, ax)));
+		float targetAngle = (float) (Math.atan2(velY, velX) * MathUtils.radiansToDegrees + 360) % 360;
+
+		sprite.translateX(
+				velX != 0 ? (float) (Math.cos(targetAngle * MathUtils.degreesToRadians) * speed) : 0);
+		sprite.translateY((float) (Math.sin(targetAngle * MathUtils.degreesToRadians) * speed));
+
+		if (velX == 0 && velY == 0) {
+			targetAngle = angle; // Don't change angle if not moving
+		}
+		angle =
+				MathUtils.lerpAngleDeg(
+						angle, targetAngle, (float) rotSpeed / (Math.abs(targetAngle - angle) + 0.01f));
+
+		sprite.setRotation(angle);
 
 		if (sprite.getX() < 0) {
 			sprite.setX(0);
@@ -121,53 +133,107 @@ public class Controller {
 			sprite.setY(Gdx.graphics.getHeight() - sprite.getHeight());
 		}
 
-		button1Pressed =
+		boolean newButton1Pressed =
 				player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.Q)
 						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.COMMA)
 						|| inputs[4];
 
-		button2Pressed =
+		boolean newButton2Pressed =
 				player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.E)
 						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.PERIOD)
 						|| inputs[5];
 
-		if (activePlanet != null
-				&& activePlanet.getState() == Planet.State.SELECTED
-				&& button2Pressed) {
-			activePlanet.setState(Planet.State.NONE);
+		if (newButton1Pressed && !button1Prev) {
+			button1Pressed = true;
+			button1Prev = true;
+		} else if (!newButton1Pressed) {
+			button1Pressed = false;
+			button1Prev = false;
 		}
+
+		if (newButton2Pressed && !button2Prev) {
+			button2Pressed = true;
+			button2Prev = true;
+		} else if (!newButton2Pressed) {
+			button2Pressed = false;
+			button2Prev = false;
+		}
+
+		if (button2Pressed && path != null) { // remove the last pathable
+			boolean drop = path.remove();
+			if (drop) {
+				if (Main.DEBUG) System.out.println("Dropped message");
+				path = null;
+			} else if (Main.DEBUG) {
+				System.out.println("Removed last pathable from message");
+			}
+		}
+
+		if (button1Pressed && path != null && path.isComplete()) {
+			path.drop();
+			path.message().start();
+			if (lastPathable != null) lastPathable.setState(Planet.State.NONE);
+			lastPathable = null;
+			path = null;
+			button1Pressed = false;
+		}
+
+		button2Pressed = false;
 	}
 
 	public boolean isButton1Pressed() {
-		return button1Pressed;
+		return button1Prev;
 	}
 
 	public boolean isButton2Pressed() {
-		return button2Pressed;
+		return button2Prev;
 	}
 
 	public void draw(Batch batch) {
-		float cx_sprite = sprite.getX() + sprite.getWidth() / 2;
-		float cy_sprite = sprite.getY() + sprite.getHeight() / 2;
+		Pathable pathable = Pathable.getClosestPathable(getCX(), getCY());
 
-		Planet planet = Planet.getClosestPlanet(cx_sprite, cy_sprite);
+		if (lastPathable != null
+				&& lastPathable != pathable
+				&& lastPathable.getState() != Planet.State.SELECTED) {
+			lastPathable.setState(Planet.State.NONE);
+			lastPathable = null;
+		}
 
 		sprite.draw(batch);
-		if (planet == null
-				|| (activePlanet != null && activePlanet.getState() == Planet.State.SELECTED)) {
-			if (activePlanet != null && activePlanet.getState() == Planet.State.HOVERED) {
-				activePlanet.setState(Planet.State.NONE);
-				activePlanet = null;
-			}
+
+		if (pathable == null
+				|| path == null
+						&& (pathable instanceof Planet p && p.message == null || pathable instanceof Satellite)
+				|| ((float) Math.hypot(pathable.getCX() - getCX(), pathable.getCY() - getCY())
+						> MAX_INTERACTION_DISTANCE)) { // Not near any pathables
 			return;
 		}
 
-		activePlanet = planet;
-
-		if (activePlanet.getState() == Planet.State.NONE) {
-			activePlanet.setState(Planet.State.HOVERED);
-		} else if (activePlanet.getState() == Planet.State.HOVERED && button1Pressed) {
-			activePlanet.setState(Planet.State.SELECTED);
+		lastPathable = pathable;
+		if (lastPathable.getState() != Pathable.State.SELECTED
+				&& (path == null || path.valid(lastPathable))) {
+			lastPathable.setState(Pathable.State.HOVERED);
 		}
+
+		if (button1Pressed && path == null && lastPathable instanceof Planet p) { // Pick up message
+			path = p.message.path;
+			path.pickup(this);
+			if (Main.DEBUG) System.out.println("Picked up message");
+		}
+
+		if (button1Pressed && path != null && path.valid(pathable)) { // Add Satellite to path
+			path.add(pathable);
+			if (Main.DEBUG) System.out.println("Added satellite to message path");
+		}
+
+		button1Pressed = false;
+	}
+
+	public float getCX() {
+		return sprite.getX() + sprite.getWidth() / 2;
+	}
+
+	public float getCY() {
+		return sprite.getY() + sprite.getHeight() / 2;
 	}
 }

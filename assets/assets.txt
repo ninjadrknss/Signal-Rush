@@ -1,4 +1,6 @@
 PLACEHOLDER_Satellite.png
 PLACEHOLDER_Spaceship.png
+PLACEHOLDER_planetMessage.png
 PLACEHOLDER_planets.png
+PLACEHOLDER_sendingMessage.png
 fonts/PixelatedEleganceRegular-ovawB.ttf

@@ -9,13 +9,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Planet {
-	public enum State {
-		NONE,
-		HOVERED,
-		SELECTED
-	}
-
+public class Planet implements Pathable {
 	private final int type;
 	private final float x;
 	private final float y;
@@ -25,15 +19,15 @@ public class Planet {
 	private State state = State.NONE;
 
 	public static ArrayList<Planet> planets = new ArrayList<>();
+	private static final boolean[] planetTypeUsed = new boolean[16];
 
 	private static final Random rand = new Random();
 	private static final TextureRegion[] planetTextures = new TextureRegion[16];
-	private static ShapeRenderer shapeRenderer;
+
+	public Message message = null;
 
 	private Planet(float x, float y, int type) {
 		if (planetTextures[0] == null) {
-			shapeRenderer = new ShapeRenderer();
-
 			Texture sheet = new Texture("PLACEHOLDER_planets.png");
 			int s = 105;
 			for (int r = 0; r < 3; r++) {
@@ -67,8 +61,8 @@ public class Planet {
 	}
 
 	public static void spawnNewPlanet() {
-		if (planets.size() < 3) {
-			float dist = (float) (Math.random() * 200 + 50);
+		if (planets.size() < 2) {
+			float dist = (float) (Math.random() * 100 + 50);
 			float angle = (float) (Math.random() * 2 * Math.PI);
 
 			float x = Gdx.graphics.getWidth() / 2.0f + (float) Math.cos(angle) * dist;
@@ -94,12 +88,37 @@ public class Planet {
 						continue while_loop;
 					}
 				}
+
+				for (Satellite satellite : Satellite.satellites) {
+					if (Math.hypot(satellite.getCX() - x, satellite.getCY() - y)
+							< 150) { // Minimum distance of 150 pixels from existing planets
+						dist = (float) (Math.random() * 200 + 50);
+						angle = (float) (Math.random() * 2 * Math.PI);
+
+						x = Gdx.graphics.getWidth() / 2.0f + (float) Math.cos(angle) * dist;
+						y = Gdx.graphics.getHeight() / 2.0f + (float) Math.sin(angle) * dist;
+
+						tries++;
+						continue while_loop;
+					}
+				}
+
 				break;
 			}
 
 			int type = rand.nextInt(16);
+
+			while (planetTypeUsed[type]) {
+				type = rand.nextInt(16);
+			}
+			planetTypeUsed[type] = true;
+
 			new Planet(x, y, type);
 			return;
+		}
+
+		if (planets.size() >= 16) {
+			return; // All planet types are used, can't spawn more
 		}
 
 		float x = rand.nextFloat() * Gdx.graphics.getWidth() * 0.7f + Gdx.graphics.getWidth() * 0.05f;
@@ -128,6 +147,20 @@ public class Planet {
 					tries++;
 					continue while_loop;
 				}
+
+				for (Satellite satellite : Satellite.satellites) {
+					if (Math.hypot(satellite.getCX() - x, satellite.getCY() - y)
+							< 150) { // Minimum distance of 150 pixels from existing planets
+
+						x = rand.nextFloat() * Gdx.graphics.getWidth() * 0.7f + Gdx.graphics.getWidth() * 0.05f;
+						y =
+								rand.nextFloat() * Gdx.graphics.getHeight() * 0.7f
+										+ Gdx.graphics.getHeight() * 0.05f;
+
+						tries++;
+						continue while_loop;
+					}
+				}
 			}
 
 			if (tooFar) {
@@ -138,13 +171,15 @@ public class Planet {
 			}
 			break;
 		}
-		//		int type = planets.size() % 16;
-		//		new Planet(type % 4 * 120 + 50, 500 - type / 4 * 120, type);
 		int type = rand.nextInt(16);
+		while (planetTypeUsed[type]) {
+			type = rand.nextInt(16);
+		}
+		planetTypeUsed[type] = true;
 		new Planet(x, y, type);
 	}
 
-	private void draw(Batch batch) {
+	private void draw(Batch batch, ShapeRenderer shapeRenderer) {
 		if (state == State.HOVERED || state == State.SELECTED) {
 			batch.end();
 			shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -159,44 +194,38 @@ public class Planet {
 				planetTextures[type], x - (type == 14 ? 8 : 0), y, 0, 0, width, 100, scale, scale, 0);
 	}
 
-	public static void drawAll(Batch batch) {
-		planets.forEach(planet -> planet.draw(batch));
+	public static void drawAll(Batch batch, ShapeRenderer shapeRenderer) {
+		batch.begin();
+		planets.forEach(planet -> planet.draw(batch, shapeRenderer));
+		batch.end();
 	}
 
-	public static Planet getClosestPlanet(float x, float y) {
-		Planet closest = null;
-		float closestDist = Float.MAX_VALUE;
-		for (Planet planet : planets) {
-			float dist = (float) Math.hypot(planet.getCX() - x, planet.getCY() - y);
-			if (dist < closestDist) {
-				closestDist = dist;
-				closest = planet;
-			}
-		}
-
-		if (closest == null || closestDist > closest.width * closest.scale / 2 + 10) {
-			return null;
-		}
-		return closest;
-	}
-
+	@Override
 	public State getState() {
 		return state;
 	}
 
+	@Override
 	public void setState(State state) {
 		this.state = state;
 	}
 
+	@Override
 	public float getCX() {
 		return x + width / 2 * scale - (type == 14 ? 8 : 0);
 	}
 
+	@Override
 	public float getCY() {
 		return y + 50 * scale;
 	}
 
 	public float getWidth() {
 		return 100 * scale;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof Planet p && p.type == type;
 	}
 }

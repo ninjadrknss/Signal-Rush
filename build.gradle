@@ -76,8 +76,8 @@ subprojects {
       removeUnusedImports()
       trimTrailingWhitespace()
       endWithNewline()
-      indentWithSpaces(2)
-      indentWithTabs(2)
+      leadingTabsToSpaces(2)
+      leadingSpacesToTabs(2)
     }
   }
 }
