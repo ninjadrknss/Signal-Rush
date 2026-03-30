@@ -1,5 +1,7 @@
 package com.stellar.relay;
 
+import static com.stellar.relay.GUI.score;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -9,22 +11,25 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter {
+	enum Difficulty {
+		EASY(0.5f),
+		MEDIUM(1f),
+		HARD(2.0f);
 
-	// So my current thought is to base it around a game like Cleared to Land,
-	// where the focus is on routing message through satellites while avoiding obstacles.
-	// I am feeling like there would be a bunch of planets which have personified
-	// inhabitants that want to send message to other planets via routing through
-	// satellites. The message would have an expiration time, and once triggered would
-	// end the game. To make it challenging, more and more planets and message will appear,
-	// each satellite can only send or queue one message at a time, and maybe obstacles like
-	// astroid clusters or gas clouds blocking routes between some satellites or satellites
-	// running out of battery. The game would be controlled via controlling a cursor that snaps
-	// to planets, with the two buttons either confirming the route or cancelling it while in
-	// the pathing state or clearing a route or pausing it.
-	//
-	// Also, it would have the option for 1 or 2 players, with each player’s cursor and
-	// pathing being related to their joystick color, and each path being only able to
-	// be controlled by one player.
+		public final float multiplier;
+
+		Difficulty(float multiplier) {
+			this.multiplier = multiplier;
+		}
+	}
+
+	enum GameState {
+		SPLASH,
+		TUTORIAL,
+		FREE_PLAY,
+		GAME_OVER
+	}
+
 	public static final boolean DEBUG = true;
 
 	private SpriteBatch batch;
@@ -34,6 +39,10 @@ public class Main extends ApplicationAdapter {
 	private Controller controller_left;
 
 	private GUI gui;
+
+	private float messageSpawnTimer = 0;
+
+	public static Difficulty difficulty = Difficulty.MEDIUM;
 
 	@Override
 	public void create() {
@@ -93,9 +102,24 @@ public class Main extends ApplicationAdapter {
 	}
 
 	private void logic() {
-		if (Message.messages.isEmpty()) {
-			Planet.spawnNewPlanet();
-			for (int i = 0; i < 2 * Math.log(Planet.planets.size()); i++) {
+		if (score < 300) {
+			if (Message.messages.isEmpty()) {
+				Planet.spawnNewPlanet();
+				for (int i = 0; i < 2 * Math.log(Planet.planets.size()); i++) {
+					Satellite.spawnNewSatellite();
+				}
+
+				for (int i = 0; i < 2 * Math.log(Planet.planets.size()); i++) {
+					Message.spawnNewMessage();
+				}
+
+				messageSpawnTimer = (float) (Math.random() * 10f);
+			}
+		} else if (messageSpawnTimer <= 0 || Message.messages.isEmpty()) {
+			messageSpawnTimer = (float) (Math.random() * 10f);
+
+			if (Math.random() > 0.2 * Math.sqrt(Planet.planets.size())) Planet.spawnNewPlanet();
+			for (int i = 0; i < Math.log(Planet.planets.size()); i++) {
 				Satellite.spawnNewSatellite();
 			}
 
@@ -106,6 +130,6 @@ public class Main extends ApplicationAdapter {
 	}
 
 	public static void gameOver() {
-		throw new RuntimeException("Game Over! Final Score: " + GUI.score);
+		throw new RuntimeException("Game Over! Final Score: " + score);
 	}
 }

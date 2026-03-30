@@ -68,6 +68,37 @@ public class Path {
 						controller.lastPathable.getCY(),
 						WIDTH);
 			}
+
+			float dist =
+					(float)
+							Math.hypot(
+									destination.getCX() - controller.getCX(),
+									destination.getCY() - controller.getCY());
+
+			dist = (float) (Math.pow(dist - 20, 0.55) * 4);
+
+			float angle =
+					(float)
+							Math.atan2(
+									destination.getCY() - controller.getCY(),
+									destination.getCX() - controller.getCX());
+
+			float x = controller.getCX() + dist * (float) Math.cos(angle);
+			float y = controller.getCY() + dist * (float) Math.sin(angle);
+
+			shapeRenderer.setColor(Color.YELLOW);
+			shapeRenderer.rectLine(controller.getCX(), controller.getCY(), x, y, WIDTH / 2f);
+
+			float arrowLength = (float) (Math.sqrt(dist) * 2);
+			double arrowAngle = Math.PI / 180 * 30;
+
+			float x1 = x - arrowLength * (float) Math.cos(angle + arrowAngle);
+			float y1 = y - arrowLength * (float) Math.sin(angle + arrowAngle);
+			float x2 = x - arrowLength * (float) Math.cos(angle - arrowAngle);
+			float y2 = y - arrowLength * (float) Math.sin(angle - arrowAngle);
+
+			shapeRenderer.rectLine(x, y, x1, y1, WIDTH / 2f);
+			shapeRenderer.rectLine(x, y, x2, y2, WIDTH / 2f);
 		}
 		shapeRenderer.end();
 	}

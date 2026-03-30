@@ -12,8 +12,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class Message {
-	public static final int MAX_TIMEOUT = 20;
-	public static final float speed = 0.1f;
+	public static final float MAX_TIMEOUT = 30 / Main.difficulty.multiplier;
+	public static final float speed = 0.2f;
 
 	enum State {
 		AWAITING,
@@ -65,10 +65,14 @@ public class Message {
 		if (state == State.AWAITING) {
 			shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 			shapeRenderer.setColor(Color.WHITE);
+			if (life < MAX_TIMEOUT / 4) {
+				float v = (float) (Math.sin(life * 7) * 0.25f + 0.75f);
+				shapeRenderer.setColor(1, v, v, 1);
+			}
 			shapeRenderer.arc(
 					awaitingSprite.getX() + awaitingSprite.getWidth() * 0.5f,
 					awaitingSprite.getY() + awaitingSprite.getHeight() * 0.52f,
-					20,
+					25,
 					90,
 					life / MAX_TIMEOUT * 360);
 			shapeRenderer.end();
