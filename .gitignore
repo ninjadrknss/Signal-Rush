@@ -26,4 +26,6 @@ replay_pid*
 
 .gradle/
 .idea
+repo.html
+tree.txt
 *.DS_Store

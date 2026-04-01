@@ -1,4 +1,4 @@
-package com.stellar.relay;
+package com.signal.rush;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;

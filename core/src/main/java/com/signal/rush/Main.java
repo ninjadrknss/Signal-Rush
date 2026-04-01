@@ -1,6 +1,6 @@
-package com.stellar.relay;
+package com.signal.rush;
 
-import static com.stellar.relay.GUI.score;
+import static com.signal.rush.GUI.score;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -52,7 +52,7 @@ public class Main extends ApplicationAdapter {
 
 	public static Difficulty difficulty = Difficulty.MEDIUM;
 
-	public static GameState gameState = GameState.FREE_PLAY;
+	public static GameState gameState = GameState.SPLASH;
 	private static float stateTimer = 0;
 	private static GameState nextState = gameState;
 	private static float stateTransitionTimer = 0;

@@ -1,4 +1,4 @@
-package com.stellar.relay;
+package com.signal.rush;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;

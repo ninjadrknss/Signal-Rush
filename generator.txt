@@ -1,0 +1,52 @@
+OUTPUT="repo.html"; \
+echo '<html><head><meta charset="UTF-8"><style>
+body {
+  font-family: "JetBrains Mono", Menlo, Monaco, monospace;
+  line-height: 1.45;
+  background: #ffffff;
+  color: #2b2b2b;
+  padding: 24px;
+  font-size: 12.5px;
+}
+h1 {
+  border-bottom: 2px solid #e5e5e5;
+  padding-bottom: 6px;
+}
+h2 {
+  margin-top: 36px;
+  font-size: 14px;
+  color: #1a1a1a;
+}
+pre {
+  background: #ffffff;
+  padding: 10px 0;
+  margin: 0;
+  overflow-x: auto;
+}
+
+/* IntelliJ-like syntax colors */
+.k { color: #0000ff; font-weight: normal; }   /* keywords */
+.s { color: #008000; }                        /* strings */
+.c { color: #808080; font-style: italic; }    /* comments */
+.n { color: #000000; }                        /* names */
+.o { color: #000000; }                        /* operators */
+.m { color: #0000ff; }                        /* numbers */
+.kt { color: #0000ff; }                       /* types */
+.na { color: #660e7a; }                       /* annotations */
+.nb { color: #0000ff; }                       /* builtins */
+
+/* subtle structure */
+.filepath {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+</style></head><body>' > $OUTPUT && \
+echo '<h1>Repository Overview</h1><pre>' >> $OUTPUT && \
+cat tree.txt >> $OUTPUT && \
+echo '</pre><h1>Source Code</h1>' >> $OUTPUT && \
+find . -name "*.java" ! -path "*/.git/*" | sort | while read file; do
+  echo "<h2>$file</h2>" >> $OUTPUT
+  pygmentize -l java -f html -O noclasses,style=default >> $OUTPUT < "$file"
+done && \
+echo '</body></html>' >> $OUTPUT

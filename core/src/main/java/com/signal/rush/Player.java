@@ -1,4 +1,4 @@
-package com.stellar.relay;
+package com.signal.rush;
 
 public enum Player {
 	LEFT,

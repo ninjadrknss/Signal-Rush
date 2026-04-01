@@ -1,8 +1,8 @@
-package com.stellar.relay.lwjgl3;
+package com.signal.rush.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import com.stellar.relay.Main;
+import com.signal.rush.Main;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
@@ -18,7 +18,7 @@ public class Lwjgl3Launcher {
 
 	private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
 		Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
-		configuration.setTitle("Stellar Relay");
+		configuration.setTitle("Signal Rush");
 		//// Vsync limits the frames per second to what your hardware can display, and helps eliminate
 		//// screen tearing. This setting doesn't always work on Linux, so the line after is a
 		// safeguard.
@@ -35,8 +35,7 @@ public class Lwjgl3Launcher {
 
 		//		configuration.setWindowedMode(640, 640);
 		configuration.setWindowedMode(2880, 1864);
-		//		configuration.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode()); // TODO:
-		// enable fullscreen
+		//		configuration.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
 		//// You can change these files; they are in lwjgl3/src/main/resources/ .
 		//// They can also be loaded from the root of assets/ .
 		configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
