@@ -38,7 +38,7 @@ public class Main extends ApplicationAdapter {
 		GAME_OVER
 	}
 
-	public static final boolean DEBUG = false; // todo: change
+	public static final boolean DEBUG = true; // todo: change
 
 	private PolygonSpriteBatch batch;
 	private ShapeRenderer shapeRenderer;

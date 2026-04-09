@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
 import com.fazecast.jSerialComm.SerialPort;
+import java.util.Arrays;
 
 public class Controller {
 	public static final float MAX_INTERACTION_DISTANCE = 75;
@@ -70,6 +71,8 @@ public class Controller {
 		}
 	}
 
+	private static String data;
+
 	public void input(boolean movementEnabled) {
 		float speed =
 				300f
@@ -82,22 +85,26 @@ public class Controller {
 		boolean[] inputs = new boolean[6]; // Up, Down, Left, Right, button1, button2
 
 		if (picoPort != null && picoPort.isOpen()) {
-			int numRead = picoPort.readBytes(buffer, buffer.length);
+			if (player == Player.LEFT) {
+				int numRead = picoPort.readBytes(buffer, buffer.length);
 
-			if (numRead > 0) {
-				// Read the first line of data
-				String data = new String(buffer, 0, numRead).trim().split("\n")[0];
-				if (data.charAt(0) == 'P') {
-					for (int i = 0; i < 6 && i < data.length() - 1; i++) {
-						// The data format is expected to be "P:xxxxyyaaaabb" where each variable is '0' or '1'
-						// for each button,
-						// and each set of 6 buttons corresponds to a player, 4 joystick switches, 2 buttons.
-						inputs[i] = data.charAt(i + 2 + (player == Player.LEFT ? 0 : 6)) == '1';
-					}
+				if (numRead > 0) {
+					// Read the first line of data
+					data = new String(buffer, 0, numRead).trim().split("\n")[0];
 				}
-				if (Main.DEBUG) System.out.println("Received data: " + data);
-				buffer = new byte[256];
 			}
+
+			if (!data.isEmpty() && data.charAt(0) == 'P') {
+				for (int i = 0; i < 6 && i < data.length() - 1; i++) {
+					// The data format is expected to be "P:xxxxyyaaaabb" where each variable is '0' or '1'
+					// for each button,
+					// and each set of 6 buttons corresponds to a player, 4 joystick switches, 2 buttons.
+					inputs[i] = data.charAt(i + 2 + (player == Player.LEFT ? 0 : 6)) == '1';
+				}
+			}
+			if (Main.DEBUG)
+				System.out.println("Received data for " + player + ": " + Arrays.toString(inputs));
+			buffer = new byte[256];
 		}
 
 		int velX = 0;
