@@ -99,7 +99,7 @@ public class Main extends ApplicationAdapter {
 				batch.end();
 			}
 
-			case STORY -> drawTutorial();
+			case STORY -> drawStory();
 
 			case FREE_PLAY -> {
 				input();
@@ -231,12 +231,16 @@ public class Main extends ApplicationAdapter {
 		}
 	}
 
+	private static Sprite easyMessage;
+	private static Sprite[] mediumMessages;
+	private static Sprite[] hardMessages;
+
 	private void drawDifficultySelect() {
-		ScreenUtils.clear(0.15f, 0.15f, 0.15f, 1f);
+		ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
 		batch.begin();
 
-		shapeDrawer.setColor(Color.WHITE);
+		shapeDrawer.setColor(0.75f, 0.75f, 0.80f, 1f);
 
 		shapeDrawer.filledRectangle(
 				Gdx.graphics.getWidth() / 4f - 200, Gdx.graphics.getHeight() / 2f - 300, 400, 600);
@@ -247,13 +251,14 @@ public class Main extends ApplicationAdapter {
 		shapeDrawer.filledRectangle(
 				3 * Gdx.graphics.getWidth() / 4f - 200, Gdx.graphics.getHeight() / 2f - 300, 400, 600);
 
-		int selected =
-				(int)
-						((leftControl ? controller_left : controller_right).getCX()
-								/ Gdx.graphics.getWidth()
-								* 3);
+		float pos = (leftControl ? controller_left : controller_right).getCX();
 
-		shapeDrawer.setColor(0.15f, 0.15f, 0.2f, 0.7f);
+		int selected;
+		if (pos < Gdx.graphics.getWidth() / 4f) selected = 0;
+		else if (pos > 3 * Gdx.graphics.getWidth() / 4f) selected = 2;
+		else selected = 1;
+
+		shapeDrawer.setColor(0.25f, 0.25f, 0.3f, 0.7f);
 		shapeDrawer.filledRectangle(
 				(selected + 1) * Gdx.graphics.getWidth() / 4f - 200,
 				Gdx.graphics.getHeight() / 2f - 300,
@@ -267,10 +272,103 @@ public class Main extends ApplicationAdapter {
 			stateTransitionTimer = 0;
 		}
 
+		Planet.loadTextures();
+
+		batch.draw(
+				Planet.planetTextures[6],
+				Gdx.graphics.getWidth() / 4f - 175,
+				Gdx.graphics.getHeight() / 2f - 325,
+				400,
+				400);
+
+		if (easyMessage == null) {
+			easyMessage = new Sprite(new Texture("PLACEHOLDER_planetMessage.png"));
+			easyMessage.setPosition(
+					Gdx.graphics.getWidth() / 4f + 75f, Gdx.graphics.getHeight() / 2f - 85f);
+			easyMessage.setSize(80, 80);
+		}
+
+		easyMessage.draw(batch);
+
+		batch.draw(
+				Planet.planetTextures[10],
+				Gdx.graphics.getWidth() / 2f - 50,
+				Gdx.graphics.getHeight() / 2f - 250,
+				250,
+				250);
+
+		batch.draw(
+				Planet.planetTextures[8],
+				Gdx.graphics.getWidth() / 2f - 150,
+				Gdx.graphics.getHeight() / 2f + 50,
+				225,
+				225);
+
+		if (mediumMessages == null) {
+			mediumMessages =
+					new Sprite[] {
+						new Sprite(new Texture("PLACEHOLDER_planetMessage.png")),
+						new Sprite(new Texture("PLACEHOLDER_planetMessage.png"))
+					};
+
+			mediumMessages[0].setPosition(
+					Gdx.graphics.getWidth() / 2f + 105, Gdx.graphics.getHeight() / 2f - 95);
+			mediumMessages[0].setSize(60, 60);
+			mediumMessages[1].setPosition(
+					Gdx.graphics.getWidth() / 2f - 7, Gdx.graphics.getHeight() / 2f + 192);
+			mediumMessages[1].setSize(60, 60);
+		}
+
+		for (Sprite msg : mediumMessages) {
+			msg.draw(batch);
+		}
+
+		batch.draw(
+				Planet.planetTextures[12],
+				3 * Gdx.graphics.getWidth() / 4f - 200,
+				Gdx.graphics.getHeight() / 2f - 325,
+				275,
+				275);
+		batch.draw(
+				Planet.planetTextures[9],
+				3 * Gdx.graphics.getWidth() / 4f + 20,
+				Gdx.graphics.getHeight() / 2f - 100,
+				175,
+				175);
+		batch.draw(
+				Planet.planetTextures[3],
+				3 * Gdx.graphics.getWidth() / 4f - 175,
+				Gdx.graphics.getHeight() / 2f + 50,
+				200,
+				200);
+
+		if (hardMessages == null) {
+			hardMessages =
+					new Sprite[] {
+						new Sprite(new Texture("PLACEHOLDER_planetMessage.png")),
+						new Sprite(new Texture("PLACEHOLDER_planetMessage.png")),
+						new Sprite(new Texture("PLACEHOLDER_planetMessage.png"))
+					};
+
+			hardMessages[0].setPosition(
+					3 * Gdx.graphics.getWidth() / 4f - 22, Gdx.graphics.getHeight() / 2f - 137);
+			hardMessages[0].setSize(60, 60);
+			hardMessages[1].setPosition(
+					3 * Gdx.graphics.getWidth() / 4f + 137, Gdx.graphics.getHeight() / 2f + 17);
+			hardMessages[1].setSize(60, 60);
+			hardMessages[2].setPosition(
+					3 * Gdx.graphics.getWidth() / 4f - 35, Gdx.graphics.getHeight() / 2f + 200);
+			hardMessages[2].setSize(60, 60);
+		}
+
+		for (Sprite msg : hardMessages) {
+			msg.draw(batch);
+		}
+
 		batch.end();
 	}
 
-	private void drawTutorial() {
+	private void drawStory() {
 		if (stateTimer > 2 && nextState == gameState) {
 			nextState = GameState.FREE_PLAY;
 			stateTransitionTimer = 0;
@@ -284,13 +382,18 @@ public class Main extends ApplicationAdapter {
 		ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 		Planet.drawAll(batch, shapeRenderer);
 		Path.drawAll(shapeRenderer);
-		Message.drawAll(batch, shapeRenderer);
 		Satellite.drawAll(batch, shapeRenderer);
+		Message.drawAll(batch, shapeRenderer);
 
 		batch.begin();
 		controller_left.draw(batch);
 		controller_right.draw(batch);
 		batch.end();
+
+		GUI.tutorialStep =
+				(int)
+						Math.min(
+								10, (stateTimer - 2) / 8); // Advance tutorial step every 15 seconds, up to step 10
 	}
 
 	private void drawGameOver() {
@@ -403,14 +506,11 @@ public class Main extends ApplicationAdapter {
 		Message.messages.clear();
 		Path.paths.clear();
 
-		controller_left.active = false;
-		controller_right.active = false;
+		controller_left.reset();
+		controller_right.reset();
 
-		if (leftControl) {
-			controller_left.active = true;
-		} else {
-			controller_right.active = true;
-		}
+		if (leftControl) controller_left.active = true;
+		else controller_right.active = true;
 
 		for (int i = 0; i < 2; i++) {
 			Planet.spawnNewPlanet();

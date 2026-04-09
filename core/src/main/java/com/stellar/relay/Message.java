@@ -13,7 +13,7 @@ import java.util.Queue;
 
 public class Message {
 	public static final float MAX_TIMEOUT =
-			30 / Main.difficulty.multiplier; // in seconds, TODO tweak this value for better gameplay
+			45 / Main.difficulty.multiplier; // in seconds, TODO tweak this value for better gameplay
 	public static final float speed = 0.2f; // Progress per second
 
 	enum State {
@@ -79,7 +79,7 @@ public class Message {
 			awaitingSprite.draw(batch);
 			batch.end();
 
-			life -= Gdx.graphics.getDeltaTime();
+			life -= Gdx.graphics.getDeltaTime() / (GUI.score > 100 ? 1 : 20);
 
 			if (life <= 0) Main.initGameOver();
 		} else if (state == State.IN_TRANSIT) {
@@ -94,7 +94,8 @@ public class Message {
 					}
 				}
 				path.delete();
-				GUI.score += 100; // Award points for successful delivery
+				GUI.score +=
+						(int) (100 / Main.difficulty.multiplier); // Award points for successful delivery
 				if (Main.DEBUG) System.out.println("Message delivered to " + destination);
 				// TODO: add some visual effect for delivery, like a burst or confetti?
 			}

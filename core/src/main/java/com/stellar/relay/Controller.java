@@ -287,4 +287,14 @@ public class Controller {
 	public float getCY() {
 		return sprite.getY() + sprite.getHeight() / 2;
 	}
+
+	public void reset() {
+		active = false;
+		velocity = 0;
+		angle = (float) (Math.random() * 2 * (float) Math.PI);
+
+		sprite.setPosition(
+				Gdx.graphics.getWidth() / 2f + 400 * (player == Player.LEFT ? -1 : 1),
+				Gdx.graphics.getHeight() / 2f);
+	}
 }
