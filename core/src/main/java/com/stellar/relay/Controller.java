@@ -222,7 +222,7 @@ public class Controller {
 		if (movementEnabled && button2Pressed && path != null) { // remove the last pathable
 			boolean drop = path.remove();
 
-			lastPathable.setState(Planet.State.NONE);
+			if (lastPathable != null) lastPathable.setState(Planet.State.NONE);
 			lastPathable = null;
 
 			if (drop) {
